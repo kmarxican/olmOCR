@@ -1,0 +1,18 @@
+# ignore common file types
+*.pdf
+*.json
+*.jsonl
+*.html
+*.log
+*.txt
+*.jpg
+
+# ignore system files
+.DS_Store
+
+# ignore output directories
+/debug_output
+/__pycache__
+/rendered_images
+/dolma_previews
+/results
