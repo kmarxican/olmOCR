@@ -49,9 +49,32 @@ TARGET_LONGEST_IMAGE_DIM = 1024  # Optimal resolution for text block recognition
 MAX_WORKERS = 4  # For parallel processing
 
 # Set device
-device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+# Device initialization with debug logging
+try:
+    if torch.backends.mps.is_available():
+        print(f"PyTorch {torch.__version__} MPS backend available")
+        device = torch.device("mps")
+        print(f"Using MPS device: {torch.mps.current_allocated_memory()} MB allocated")
+    else:
+        device = torch.device("cpu")
+        print("MPS not available, using CPU")
+except Exception as e:
+    print(f"Error initializing device: {e}")
+    raise
 
 class OlmOCRProcessor:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.model is not None:
+            if torch.backends.mps.is_available():
+                torch.mps.empty_cache()
+            del self.model
+            del self.processor
+            self.model = None
+            self.processor = None
+            print("Released model resources")
     """Class to handle PDF processing with olmOCR model."""
     
     def __init__(self, model_path: str = MODEL_PATH, max_tokens: int = MAX_TOKENS_PER_PAGE, 
@@ -67,11 +90,16 @@ class OlmOCRProcessor:
         self.processor = None
         
     def load_model(self):
+        # Memory debug logging
+        if torch.backends.mps.is_available():
+            print(f"Pre-load memory: {torch.mps.current_allocated_memory()}MB allocated, {torch.mps.driver_allocated_memory()}MB reserved")
         """Load OLMOCR model and processor."""
         print(f"Loading model from {self.model_path}...")
         start_time = time.time()
         self.model, self.processor = load(self.model_path)
         print(f"Model loaded in {time.time() - start_time:.2f} seconds")
+        if torch.backends.mps.is_available():
+            print(f"Post-load memory: {torch.mps.current_allocated_memory()}MB allocated, {torch.mps.driver_allocated_memory()}MB reserved")
         return self.model, self.processor
 
     def get_pdf_page_count(self, pdf_path: str) -> int:
@@ -443,13 +471,14 @@ def main():
         pdf_path = local_path
     
     # Initialize processor with arguments
-    processor = OlmOCRProcessor(
+    with OlmOCRProcessor(
         model_path=args.model,
         max_tokens=args.max_tokens,
         temperature=args.temperature,
         image_dim=args.image_dim,
         max_workers=args.workers
-    )
+    ) as processor:
+        start_time = time.time()
     
     # Process PDF
     start_time = time.time()
@@ -481,6 +510,8 @@ def main():
                     pass
     
     # Print summary
+    # Force memory cleanup after processing
+    torch.mps.empty_cache()
     print(f"\nExtraction completed in {time.time() - start_time:.2f} seconds")
     print(f"Total text length: {len(document_data['text'])} characters")
     print(f"Success rate: {document_data['attributes']['success_rate']}")

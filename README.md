@@ -60,7 +60,7 @@ python hyperwarp.py \
 ## Plans for Future Updates
 
 - Implement parallel processing for faster document processing
-- Improve HTML preview generation and formatting
+- Improved HTML preview generation and formatting with modern styling and interactive features
 - Add support for additional input formats
 - Add support for additional output formats
 - Enhance error handling and robustness

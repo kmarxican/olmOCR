@@ -1,0 +1,60 @@
+/* Modern CSS reset */
+:root {
+  --primary: #2c3e50;
+  --secondary: #3498db;
+  --text: #2c3e50;
+  --background: #f8f9fa;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
+  color: var(--text);
+  background-color: var(--background);
+}
+
+.preview-header {
+  background: var(--primary);
+  color: white;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.content-container {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.text-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.thumbnail-sidebar {
+  position: sticky;
+  top: 1rem;
+  height: fit-content;
+}
+
+@media (max-width: 768px) {
+  .content-container {
+    grid-template-columns: 1fr;
+    padding: 0;
+  }
+  
+  .thumbnail-sidebar {
+    display: none;
+  }
+}
