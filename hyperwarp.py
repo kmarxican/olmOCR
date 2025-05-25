@@ -12,6 +12,7 @@ import subprocess
 import signal
 import logging
 import sys
+import re
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from io import BytesIO
@@ -171,6 +172,11 @@ class OlmOCRProcessor:
                 
                 if chunk:
                     page_generated_text += chunk
+
+            # Clean excessive newlines
+            page_generated_text = re.sub(r'(\n\s*){2,}', '\n\n', page_generated_text)
+            # Clean ampersand artifacts like &86 (e.g., &86, &123;)
+            page_generated_text = re.sub(r'&\d{2,};?', '', page_generated_text)
 
             # Create PageResult object
             page_result = PageResult(
